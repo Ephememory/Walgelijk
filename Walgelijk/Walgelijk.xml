@@ -3867,6 +3867,173 @@
             noise = GetNoise(x, y, z)</code>
             </example>
         </member>
+        <member name="M:Walgelijk.FFT.Transform.FFT(Walgelijk.FFT.Complex[])">
+            <summary>
+            Compute the discrete Fourier Transform (in-place) using the FFT algorithm.
+            </summary>
+            <param name="buffer">Data to transform in-place. Length must be a power of 2.</param>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.FFT(System.Span{Walgelijk.FFT.Complex})">
+            <summary>
+            Compute the discrete Fourier Transform (in-place) using the FFT algorithm.
+            </summary>
+            <param name="buffer">Data to transform in-place. Length must be a power of 2.</param>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.FFT_WithoutChecks(System.Span{Walgelijk.FFT.Complex})">
+            <summary>
+            High performance FFT function.
+            Complex input will be transformed in place.
+            Input array length must be a power of two. This length is NOT validated.
+            Running on an array with an invalid length may throw an invalid index exception.
+            </summary>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.IFFT(Walgelijk.FFT.Complex[])">
+            <summary>
+            Compute the inverse discrete Fourier Transform (in-place) using the FFT algorithm.
+            </summary>
+            <param name="buffer">Data to transform in-place. Length must be a power of 2.</param>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.BitReverse(System.Int32,System.Int32)">
+            <summary>
+            Reverse the sequence of bits in an integer (01101 -> 10110)
+            </summary>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.FFTfreq(System.Single,System.Int32,System.Boolean)">
+            <summary>
+            Calculate sample frequency for each point in a FFT
+            </summary>
+            <param name="sampleRate">Sample rate (Hz) of the original signal</param>
+            <param name="pointCount">Number of points to generate (typically the length of the FFT)</param>
+            <param name="oneSided">Whether or not frequencies are for a one-sided FFT (containing only real numbers)</param>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.FFTfreq(System.Single,System.Single[],System.Boolean)">
+            <summary>
+            Calculate sample frequency for each point in a FFT
+            </summary>
+            <param name="sampleRate">Sample rate (Hz) of the original signal</param>
+            <param name="fft">FFT array for which frequencies should be generated</param>
+            <param name="oneSided">Whether or not frequencies are for a one-sided FFT (containing only real numbers)</param>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.FFTfreqPeriod(System.Int32,System.Int32)">
+            <summary>
+            Return the distance between each FFT point in frequency units (Hz)
+            </summary>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.IsPowerOfTwo(System.Int32)">
+            <summary>
+            Test if a number is an even power of 2
+            </summary>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.MakeComplex(System.Single[])">
+            <summary>
+            Create an array of Complex data given the real component
+            </summary>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.MakeComplex(System.Span{Walgelijk.FFT.Complex},System.Span{System.Single})">
+            <summary>
+            Create an array of Complex data given the real component
+            </summary>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.FFT(System.Single[])">
+            <summary>
+            Compute the 1D discrete Fourier Transform using the Fast Fourier Transform (FFT) algorithm
+            </summary>
+            <param name="input">real input (must be an array with length that is a power of 2)</param>
+            <returns>transformed input</returns>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.RFFT(System.Single[])">
+            <summary>
+            Compute the 1D discrete Fourier Transform using the Fast Fourier Transform (FFT) algorithm
+            </summary>
+            <param name="input">real input (must be an array with length that is a power of 2)</param>
+            <returns>real component of transformed input</returns>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.RFFT(System.Span{Walgelijk.FFT.Complex},System.Span{System.Single})">
+            <summary>
+            Compute the 1D discrete Fourier Transform using the Fast Fourier Transform (FFT) algorithm
+            </summary>
+            <param name="destination">Memory location of the results (must be an equal to input length / 2 + 1)</param>
+            <param name="input">real input (must be an array with length that is a power of 2)</param>
+            <returns>real component of transformed input</returns>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.Absolute(Walgelijk.FFT.Complex[])">
+            <summary>
+            Return a Complex array as an array of its absolute values
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.FFTmagnitude(System.Single[])">
+            <summary>
+            Calculte power spectrum density (PSD) original (RMS) units
+            </summary>
+            <param name="input">real input</param>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.FFTmagnitude(System.Span{System.Single},System.Span{System.Single})">
+            <summary>
+            Calculte power spectrum density (PSD) original (RMS) units
+            </summary>
+            <param name="destination">Memory location of the results.</param>
+            <param name="input">real input</param>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.FFTpower(System.Single[])">
+            <summary>
+            Calculte power spectrum density (PSD) in dB units
+            </summary>
+            <param name="input">real input</param>
+        </member>
+        <member name="M:Walgelijk.FFT.Transform.FFTpower(System.Span{System.Single},System.Single[])">
+            <summary>
+            Calculte power spectrum density (PSD) in dB units
+            </summary>
+            <param name="destination">Memory location of the results.</param>
+            <param name="input">real input</param>
+        </member>
+        <member name="M:Walgelijk.FFT.Windows.IWindow.Create(System.Int32,System.Boolean)">
+            <summary>
+            Generate this window as a new array with the given length.
+            Normalizing will scale the window so the sum of all points is 1.
+            </summary>
+        </member>
+        <member name="M:Walgelijk.FFT.Windows.IWindow.Apply(System.Single[],System.Boolean)">
+            <summary>
+            Return a new array where this window was multiplied by the given signal.
+            Normalizing will scale the window so the sum of all points is 1 prior to multiplication.
+            </summary>
+        </member>
+        <member name="M:Walgelijk.FFT.Windows.IWindow.ApplyInPlace(System.Single[],System.Boolean)">
+            <summary>
+            Modify the given signal by multiplying it by this window IN PLACE.
+            Normalizing will scale the window so the sum of all points is 1 prior to multiplication.
+            </summary>
+        </member>
+        <member name="P:Walgelijk.FFT.Windows.IWindow.Name">
+            <summary>
+            Single word name for this window
+            </summary>
+        </member>
+        <member name="P:Walgelijk.FFT.Windows.IWindow.Description">
+            <summary>
+            A brief description of what makes this window unique and what it is typically used for.
+            </summary>
+        </member>
+        <member name="M:Walgelijk.FFT.Windows.Window.Apply(System.Single[],System.Boolean)">
+            <summary>
+            Multiply the array by this window and return the result as a new array
+            </summary>
+        </member>
+        <member name="M:Walgelijk.FFT.Windows.Window.ApplyInPlace(System.Single[],System.Boolean)">
+            <summary>
+            Multiply the array by this window, modifying it in place
+            </summary>
+        </member>
+        <member name="M:Walgelijk.FFT.Windows.Window.GetWindows">
+            <summary>
+            Return an array containing all available windows.
+            Note that all windows returned will use the default constructor, but some
+            windows have customization options in their constructors if you create them individually.
+            </summary>
+        </member>
         <member name="T:Walgelijk.IExternal`1">
             <summary>
             Objects that have data on the local side that is eventually uploaded somewhere else (usually the GPU)
@@ -4354,6 +4521,11 @@
             Linearly interpolate between two floats
             </summary>
         </member>
+        <member name="M:Walgelijk.Utilities.Lerp(System.Double,System.Double,System.Double)">
+            <summary>
+            Linearly interpolate between two doubles
+            </summary>
+        </member>
         <member name="M:Walgelijk.Utilities.Lerp(Walgelijk.Rect@,Walgelijk.Rect@,System.Single)">
             <summary>
             Linearly interpolate between two rects
@@ -4405,6 +4577,12 @@
             </summary>
         </member>
         <member name="M:Walgelijk.Utilities.Clamp(System.Single,System.Single,System.Single)">
+            <summary>
+            Clamp a value within a range
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Walgelijk.Utilities.Clamp(System.Double,System.Double,System.Double)">
             <summary>
             Clamp a value within a range
             </summary>
@@ -4529,6 +4707,13 @@
             By luispedrofonseca
             </summary>
         </member>
+        <member name="M:Walgelijk.Utilities.SmoothApproach(System.Double,System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            Smoothly approaches a value to a target value given a speed and dt
+            <br></br>
+            By luispedrofonseca
+            </summary>
+        </member>
         <member name="M:Walgelijk.Utilities.SmoothApproach(Walgelijk.Rect@,Walgelijk.Rect@,Walgelijk.Rect@,System.Single,System.Single)">
             <summary>
             Smoothly approaches a value to a target value given a speed and dt
@@ -4600,6 +4785,11 @@
             </summary>
         </member>
         <member name="M:Walgelijk.Utilities.NanFallback(System.Single,System.Single)">
+            <summary>
+            Returns the given fallback value (0 by default) if the given input value is NaN
+            </summary>
+        </member>
+        <member name="M:Walgelijk.Utilities.NanFallback(System.Double,System.Double)">
             <summary>
             Returns the given fallback value (0 by default) if the given input value is NaN
             </summary>
