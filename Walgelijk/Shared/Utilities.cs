@@ -59,15 +59,6 @@ public struct Utilities
     }
 
     /// <summary>
-    /// Linearly interpolate between two doubles
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Lerp(double a, double b, double t)
-    {
-        return a * (1 - t) + b * t;
-    }
-
-    /// <summary>
     /// Linearly interpolate between two rects
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -186,16 +177,6 @@ public struct Utilities
     public static float Clamp(float x, float min = 0, float max = 1)
     {
         return MathF.Max(min, MathF.Min(x, max));
-    }
-
-    /// <summary>
-    /// Clamp a value within a range
-    /// </summary>
-    /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Clamp(double x, double min = 0, double max = 1)
-    {
-        return Math.Max(min, Math.Min(x, max));
     }
 
     /// <summary>
@@ -433,20 +414,6 @@ public struct Utilities
     /// By luispedrofonseca
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double SmoothApproach(double pastPosition, double pastTargetPosition, double targetPosition, double speed, double deltaTime)
-    {
-        var t = deltaTime * speed;
-        var v = (targetPosition - pastTargetPosition) / t;
-        var f = pastPosition - pastTargetPosition + v;
-        return NanFallback(targetPosition - v + f * Math.Exp(-t));
-    }
-
-    /// <summary>
-    /// Smoothly approaches a value to a target value given a speed and dt
-    /// <br></br>
-    /// By luispedrofonseca
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Rect SmoothApproach(in Rect pastPosition, in Rect pastTargetPosition, in Rect targetPosition, float speed, float deltaTime)
     {
         return new Rect(
@@ -572,12 +539,6 @@ public struct Utilities
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float NanFallback(float v, float fallback = 0) => float.IsNaN(v) ? fallback : v;
-
-    /// <summary>
-    /// Returns the given fallback value (0 by default) if the given input value is NaN
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double NanFallback(double v, double fallback = 0) => double.IsNaN(v) ? fallback : v;
 
     /// <summary>
     /// Returns the given fallback value (0 by default) if the given input value is NaN
