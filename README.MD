@@ -2,7 +2,7 @@
 
 ![Nuget](https://img.shields.io/nuget/v/Walgelijk?color=1650EC&logo=nuget&style=flat-square)
 
-Een kleine, simpele 2D game engine
+A fork of [Walgelijk. Een kleine, simpele 2D game engine](https://github.com/mestiez/Walgelijk) which rids SixLabors dependencies with [SkiaSharp](https://github.com/mono/SkiaSharp).
 
 ```cs
 var game = new Game(

@@ -5,7 +5,7 @@
 /// </summary>
 public static class BuiltInShaders
 {
-    public static string TexturedFragment =
+    public readonly static string TexturedFragment =
 @"#version 330 core
 
 in vec2 uv;
@@ -14,14 +14,13 @@ in vec4 vertexColor;
 out vec4 color;
 
 uniform sampler2D mainTex;
-uniform vec4 tint = vec4(1,1,1,1);
 
 void main()
 {
     color = vertexColor * texture(mainTex, uv);
 }";
 
-    public static string WorldSpaceVertex =
+    public readonly static string WorldSpaceVertex =
 @"#version 330 core
 
 layout(location = 0) in vec3 position;
@@ -43,7 +42,7 @@ void main()
    gl_Position = projection * view * model * vec4(position, 1.0);
 }";
 
-    public static string BatchVertex =
+    public readonly static string BatchVertex =
 @"
 #version 330 core
 
@@ -69,7 +68,7 @@ void main()
    gl_Position = projection * view * (model * instance_model) * vec4(position, 1.0);
 }";
 
-    public static string BatchFragment =
+    public readonly static string BatchFragment =
 @"
 #version 330 core
 

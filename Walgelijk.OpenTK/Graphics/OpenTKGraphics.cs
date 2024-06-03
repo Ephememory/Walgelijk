@@ -1,7 +1,5 @@
 ﻿using OpenTK.Graphics.OpenGL4;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -331,98 +329,51 @@ public class OpenTKGraphics : IGraphics
                     if (TryGetId(tex, out var id))
                     {
                         using var img = TextureToImage(texture.HDR, texture.Width, texture.Height, id);
-                        img.SaveAsPng(output);
+                        using (var data = img.Encode(SKEncodedImageFormat.Png, 80))
+                        {
+                            data.SaveTo(output);
+                        }
                     }
                 }
                 break;
-            case RenderTexture rt:
-                {
-                    if (TryGetId(rt, out var frameBufferId, out var texInts))
-                    {
-                        var final = new Image<Rgba32>(rt.Width, rt.Height * (rt.DepthBuffer != null ? 2 : 1));
-
-                        int s = rt.Width * rt.Height * 4;
-
-                        if ((rt.Flags & RenderTargetFlags.HDR) != RenderTargetFlags.None)
-                        {
-                            var data = new float[s];
-                            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferId);
-                            GL.ReadBuffer(ReadBufferMode.ColorAttachment0);
-                            GL.ReadPixels(0, 0, texture.Width, texture.Height, PixelFormat.Rgba, PixelType.Float, data);
-                            var a = BuildImage(texture.Width, texture.Height, data);
-                            final.Mutate(i =>
-                            {
-                                i.DrawImage(a, 1);
-                            });
-                            a.Dispose();
-                        }
-                        else
-                        {
-                            var data = new byte[s];
-                            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferId);
-                            GL.ReadBuffer(ReadBufferMode.ColorAttachment0);
-                            GL.ReadPixels(0, 0, texture.Width, texture.Height, PixelFormat.Rgba, PixelType.Float, data);
-                            var a = BuildImage(texture.Width, texture.Height, data);
-                            final.Mutate(i =>
-                            {
-                                i.DrawImage(a, 1);
-                            });
-                            a.Dispose();
-                        }
-
-                        int y = rt.Height;
-
-                        if (rt.DepthBuffer != null)
-                        {
-                            var data = new float[s / 4];
-                            var data2 = new float[s];
-                            GL.ReadPixels(0, 0, texture.Width, texture.Height, PixelFormat.DepthComponent, PixelType.Float, data);
-
-                            for (int i = 0; i < data2.Length; i += 4)
-                                data2[i] = data2[i + 1] = data2[i + 2] = data2[i + 3] = data[i / 4];
-
-                            var a = BuildImage(texture.Width, texture.Height, data2);
-                            final.Mutate(i =>
-                            {
-                                i.DrawImage(a, new Point(0, y), 1);
-                            });
-                            a.Dispose();
-                        }
-
-                        final.SaveAsPng(output);
-                        final.Dispose();
-                    }
-                }
-                break;
+                // TODO: Re-add support for RenderTexture. Removed during SixLabor->SkiaSharp conversion.
         }
 
-        static Image BuildImage<T>(int width, int height, T[] data)
+        static SKImage BuildImage<T>(int width, int height, T[] data)
         {
-            var image = new Image<SixLabors.ImageSharp.PixelFormats.Rgba32>(width, height);
-            var frame = image.Frames.RootFrame;
-
-            Func<int, Rgba32> toColor = data switch
+            var info = new SKImageInfo
             {
-                byte[] b => i => new Rgba32(b[i], b[i + 1], b[i + 2], b[i + 3]),
-                float[] f => i => new Rgba32(f[i], f[i + 1], f[i + 2], f[i + 3]),
+                Width = width,
+                Height = height,
+                ColorType = SKColorType.RgbaF32,
+            };
+
+            var image = SKImage.Create(info);
+            var pixmap = image.PeekPixels();
+            Span<Color> cols = pixmap.GetPixelSpan<Color>();
+
+            Func<int, Color> toColor = data switch
+            {
+                byte[] b => i => new Color(b[i], b[i + 1], b[i + 2], b[i + 3]),
+                float[] f => i => new Color(f[i], f[i + 1], f[i + 2], f[i + 3]),
                 _ => throw new Exception("Attempt to save a texture with an invalid format: this error is so severe that you should stop programming forever."),
             };
+
             int i = 0;
-            for (int yy = 0; yy < frame.Height; yy++)
+            for (int yy = 0; yy < image.Height; yy++)
             {
-                int y = (frame.Height - 1 - yy);
-                var pixelRowSpan = frame.PixelBuffer.DangerousGetRowSpan(y);
+                int y = (image.Height - 1 - yy);
                 for (int x = 0; x < image.Width; x++)
                 {
-                    pixelRowSpan[x] = toColor(i);
-                    i += 4; // 4 compoments per pixel :)
+                    cols[i] = toColor(i);
+                    i += image.Info.BytesPerPixel;
                 }
             }
 
             return image;
         }
 
-        static Image TextureToImage(bool hdr, int w, int h, int id)
+        static SKImage TextureToImage(bool hdr, int w, int h, int id)
         {
             int s = w * h * 4;
 
