@@ -54,7 +54,7 @@
             var vertexBuffer = new VertexBuffer(new Vertex[vertexCount], new uint[indexCount]);
 
             Prepare(drawing, vertexBuffer, false);
-            Logger.Debug("Cached common string for text mesh generation");
+            //Logger.Debug("Cached common string for text mesh generation");
 
             return vertexBuffer;
         }
