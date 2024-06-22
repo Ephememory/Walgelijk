@@ -717,6 +717,11 @@
             Whether or not the component is rendered by the system
             </summary>
         </member>
+        <member name="P:Walgelijk.ShapeComponent.Color">
+            <summary>
+            Sets the "tint" uniform before rendering. If null, does nothing.
+            </summary>
+        </member>
         <member name="P:Walgelijk.ShapeComponent.HorizontalFlip">
             <summary>
             Apply horizontal flip
@@ -873,6 +878,11 @@
         <member name="P:Walgelijk.SpriteComponent.Visible">
             <summary>
             Whether or not the sprite is rendered by the system
+            </summary>
+        </member>
+        <member name="P:Walgelijk.SpriteComponent.Color">
+            <summary>
+            Sets the "tint" uniform before rendering. If null, does nothing.
             </summary>
         </member>
         <member name="P:Walgelijk.SpriteComponent.HorizontalFlip">
@@ -1295,6 +1305,11 @@
         <member name="E:Walgelijk.Scene.OnActive">
             <summary>
             Fired when this scene is made active
+            </summary>
+        </member>
+        <member name="E:Walgelijk.Scene.OnInactive">
+            <summary>
+            Fired when this scene is made inactive
             </summary>
         </member>
         <member name="E:Walgelijk.Scene.OnCreateEntity">
@@ -1788,6 +1803,16 @@
         <member name="M:Walgelijk.System.PostRender">
             <summary>
             Run post rendering code
+            </summary>
+        </member>
+        <member name="M:Walgelijk.System.OnActivate">
+            <summary>
+            Invoked when the scene becomes active
+            </summary>
+        </member>
+        <member name="M:Walgelijk.System.OnDeactivate">
+            <summary>
+            Invoked when the scene becomes inactive
             </summary>
         </member>
         <member name="T:Walgelijk.AttributeType">
@@ -2845,6 +2870,16 @@
             Should the task set the view matrix to <see cref="P:System.Numerics.Matrix4x4.Identity"/> 
             </summary>
         </member>
+        <member name="F:Walgelijk.ShapeRenderTask.TintUniform">
+            <summary>
+            The uniform to set to the sprite texture
+            </summary>
+        </member>
+        <member name="P:Walgelijk.ShapeRenderTask.Color">
+            <summary>
+            Sets the <see cref="F:Walgelijk.ShapeRenderTask.TintUniform"/> uniform before rendering. If null, does nothing.
+            </summary>
+        </member>
         <member name="M:Walgelijk.ShapeRenderTask.Execute(Walgelijk.IGraphics)">
             <inheritdoc/>
         </member>
@@ -2866,6 +2901,11 @@
             The uniform to set to the sprite texture
             </summary>
         </member>
+        <member name="F:Walgelijk.SpriteRenderTask.TintUniform">
+            <summary>
+            The uniform to set to the sprite texture
+            </summary>
+        </member>
         <member name="F:Walgelijk.SpriteRenderTask.ModelMatrix">
             <summary>
             The matrix to transform the vertices with
@@ -2879,6 +2919,11 @@
         <member name="F:Walgelijk.SpriteRenderTask.ScreenSpace">
             <summary>
             Should the task set the view matrix to <see cref="P:System.Numerics.Matrix4x4.Identity"/> 
+            </summary>
+        </member>
+        <member name="P:Walgelijk.SpriteRenderTask.Color">
+            <summary>
+            Sets the <see cref="F:Walgelijk.SpriteRenderTask.TintUniform"/> uniform before rendering. If null, does nothing.
             </summary>
         </member>
         <member name="M:Walgelijk.SpriteRenderTask.#ctor(Walgelijk.IReadableTexture,System.Numerics.Matrix3x2,Walgelijk.Material)">
