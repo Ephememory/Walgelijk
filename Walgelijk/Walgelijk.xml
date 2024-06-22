@@ -1302,6 +1302,11 @@
             Fired when an entity is created and registered
             </summary>
         </member>
+        <member name="E:Walgelijk.Scene.OnRemovedEntity">
+            <summary>
+            Fired when an entity is removed
+            </summary>
+        </member>
         <member name="E:Walgelijk.Scene.OnAttachComponent">
             <summary>
             Fired when a component is attached to an entity
@@ -1447,6 +1452,14 @@
         <member name="M:Walgelijk.Scene.DetachComponent``1(Walgelijk.Entity)">
             <summary>
             Detach a component from an entity
+            </summary>
+        </member>
+        <member name="M:Walgelijk.Scene.DetachComponentImmediate``1(Walgelijk.Entity)">
+            <summary>
+            Detach a component from an entity and sync the buffers immediately.
+            So if you call <see cref="M:Walgelijk.Scene.DetachComponentImmediate``1(Walgelijk.Entity)"/> and then
+            <see cref="M:Walgelijk.Scene.HasComponent``1(Walgelijk.Entity)"/> in the same frame/tick, 
+            <see cref="M:Walgelijk.Scene.HasComponent``1(Walgelijk.Entity)"/> will return the correct value.
             </summary>
         </member>
         <member name="M:Walgelijk.Scene.UpdateSystems">
@@ -4832,6 +4845,11 @@
         <member name="M:Walgelijk.Utilities.RandomHue(System.Single,System.Single,System.Single)">
             <summary>
             Returns a colour with a random hue
+            </summary>
+        </member>
+        <member name="M:Walgelijk.Utilities.RandomVector2">
+            <summary>
+            Returns a random Vector2 (x,y ranged -1.0f through 1.0f)
             </summary>
         </member>
         <member name="M:Walgelijk.Utilities.Clamp(System.Single,System.Single,System.Single)">
