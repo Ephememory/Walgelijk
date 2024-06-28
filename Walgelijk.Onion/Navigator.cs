@@ -92,6 +92,13 @@ public class Navigator
     /// </summary>
     public static event Action<int, ControlState>? OnStateChange;
 
+    /// <summary>
+    /// Can we current navigate the UI with the TAB key?
+    /// <br></br>
+    /// Starts enabled as default behaviour.
+    /// </summary>
+    public bool TabNavigationEnabled = true;
+
     internal int? ScrollbarOverride;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -179,11 +186,14 @@ public class Navigator
                 FocusedControl = null;
             else if (HoverControl == null && input.MousePrimaryPressed)
                 FocusedControl = null;
-            else if (KeyControl == null)
+            else if (KeyControl == null && TabNavigationEnabled)
                 ProcessKeyboardNavigation(input);
         }
         else
-            ProcessKeyboardNavigation(input);
+        {
+            if (TabNavigationEnabled)
+                ProcessKeyboardNavigation(input);
+        }
 
 #if DEBUG
         if (Game.Main.State.Input.IsKeyReleased(Key.F4))
