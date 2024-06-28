@@ -17,7 +17,7 @@ uniform sampler2D mainTex;
 
 void main()
 {
-    color = vertexColor * texture(mainTex, uv) * tint;
+    color = vertexColor * texture(mainTex, uv);
 }";
 
     public readonly static string WorldSpaceVertex =
