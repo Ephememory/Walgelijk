@@ -184,12 +184,12 @@ public class Navigator
                 FocusedControl = null;
             else if (HoverControl == null && input.MousePrimaryPressed)
                 FocusedControl = null;
-            else if (KeyControl == null && TabNavigationEnabled)
+            else if (KeyControl == null && KeyboardNavigation)
                 ProcessKeyboardNavigation(input);
         }
         else
         {
-            if (TabNavigationEnabled)
+            if (KeyboardNavigation)
                 ProcessKeyboardNavigation(input);
         }
 
