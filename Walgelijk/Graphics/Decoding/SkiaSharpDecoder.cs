@@ -10,52 +10,70 @@ public class SkiaSharpDecoder : IImageDecoder
 {
     private static readonly byte[][] supportedHeaders =
     {
-        "BM".ToByteArray(), //BPM
+        "BM".ToByteArray(),//BPM
         "GIF".ToByteArray(),
         "GIF8".ToByteArray(),
-        "P1".ToByteArray(), //PBM
-        new byte[] { 0xFF, 0xD8 }, //JPEG
-        new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }, //PNG
-        new byte[] { 0x89, 0x50, 0x4e, 0x47 }, //PNG
-        new byte[] { 0x4d, 0x4d, 0x00, 0x2a }, //TIFF
-        new byte[] { 0x49, 0x49, 0x2a, 0x00 }, //TIFF
-        new byte[] { 0x00, 0x00 }, //TGA (success lol)
-        "RIFF".ToByteArray(), //WebP (RIFF)
+        "P1".ToByteArray(),//PBM
+        [0xFF, 0xD8],//JPEG
+        [ 137, 80, 78, 71, 13, 10, 26, 10 ],//PNG
+        [ 0x89, 0x50, 0x4e, 0x47 ],//PNG
+        [ 0x4d, 0x4d, 0x00, 0x2a ],//TIFF
+        [ 0x49, 0x49, 0x2a, 0x00 ],//TIFF
+        [ 0x00, 0x00 ],//TGA (success lol)
+        "RIFF".ToByteArray(),//WebP (RIFF)
     };
 
     public DecodedImage Decode(in ReadOnlySpan<byte> bytes, bool flipY)
     {
-        using var image = SKImage.FromEncodedData(bytes);
-        using var rasterImage = image.ToRasterImage(ensurePixelData: true);
+        using var data = SKData.CreateCopy(bytes);
+        using var codec = SKCodec.Create(data);
+        var codecInfo = codec.Info with
+        {
+            AlphaType = SKAlphaType.Unpremul,
+        };
+        using var image = new SKBitmap(codecInfo with { ColorType = SKColorType.Rgba8888 });
+        codec.GetPixels(image.Info, image.GetPixels());
+
         var colors = new Color[image.Width * image.Height];
-        CopyPixels(rasterImage, ref colors, flipY);
+        CopyPixels(image, ref colors, flipY);
         return new DecodedImage(image.Width, image.Height, colors);
     }
 
     public DecodedImage Decode(in byte[] bytes, int count, bool flipY) => Decode(bytes.AsSpan(0, count), flipY);
 
+    //TODO dit is lelijk
     /// <summary>
-    /// Copies pixels from <see cref="SKImage"/> to an array
+    /// Copies pixels from <see cref="SkiaSharp.SKBitmap"/> to an array
     /// </summary>
-    public static void CopyPixels(SKImage image, ref Color[] destination, bool flipY = true)
+    public static void CopyPixels(SkiaSharp.SKBitmap image, ref Color[] destination, bool flipY = true)
     {
-        var pixelData = image.PeekPixels();
-        var skColors = pixelData.GetPixelSpan<SKColor>();
+        var pixels = image.GetPixelSpan();
 
-        var width = pixelData.Width;
-        var height = pixelData.Height;
+        if (pixels.Length != destination.Length * 4) // 4 components per pixel
+            throw new Exception($"Image pixel format error: expected 4 bytes per pixel, got {pixels.Length / destination.Length}");
 
-        for (var index = 0; index < skColors.Length; index++)
+        int pi = 0;
+
+        for (int i = 0; i < destination.Length; i++)
         {
-            var x = index % width;
-            var y = index / width;
-            var destIndex = 0;
+            GetCoordinatesFromIndex(i, out int x, out int y);
             if (flipY)
-                destIndex = x + (height - 1 - y) * width;
-            else
-                destIndex = index;
-            
-            destination[destIndex] = skColors[index].ToWalgelijk();
+                y = image.Height - y - 1;
+            var tI = GetIndexFrom(x, y);
+
+            destination[tI] = new Color(pixels[pi++], pixels[pi++], pixels[pi++], pixels[pi++]);
+        }
+
+        int GetIndexFrom(int x, int y)
+        {
+            int index = y * image.Width + x;
+            return index;
+        }
+
+        void GetCoordinatesFromIndex(int index, out int x, out int y)
+        {
+            x = index % image.Width;
+            y = (int)float.Floor(index / image.Width);
         }
     }
 
@@ -73,8 +91,7 @@ public class SkiaSharpDecoder : IImageDecoder
             e(filename, ".pbm") ||
             e(filename, ".gif");
 
-        static bool e(in string filename, in string ex) =>
-            filename.EndsWith(ex, StringComparison.InvariantCultureIgnoreCase);
+        static bool e(in string filename, in string ex) => filename.EndsWith(ex, StringComparison.InvariantCultureIgnoreCase);
     }
 
     public bool CanDecode(ReadOnlySpan<byte> raw)

@@ -241,23 +241,30 @@ public class OpenTKGraphics : IGraphics
         if (obj == null)
             return;
 
-        switch (obj)
+        try
         {
-            case RenderTexture rt:
-                GPUObjects.RenderTextureCache.Unload(rt);
-                break;
-            case IReadableTexture texture:
-                GPUObjects.TextureCache.Unload(texture);
-                break;
-            case Material mat:
-                GPUObjects.MaterialCache.Unload(mat);
-                break;
-            case Shader shader:
-                GPUObjects.ShaderCache.Unload(shader);
-                break;
-            default:
-                Logger.Error("Attempt to delete unsupported object from GPU");
-                break;
+            switch (obj)
+            {
+                case RenderTexture rt:
+                    GPUObjects.RenderTextureCache.Unload(rt);
+                    break;
+                case IReadableTexture texture:
+                    GPUObjects.TextureCache.Unload(texture);
+                    break;
+                case Material mat:
+                    GPUObjects.MaterialCache.Unload(mat);
+                    break;
+                case Shader shader:
+                    GPUObjects.ShaderCache.Unload(shader);
+                    break;
+                default:
+                    Logger.Error("Attempt to delete unsupported object from GPU");
+                    break;
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.Error("Failed to delete GPU object: " + e);
         }
     }
 
@@ -329,51 +336,86 @@ public class OpenTKGraphics : IGraphics
                     if (TryGetId(tex, out var id))
                     {
                         using var img = TextureToImage(texture.HDR, texture.Width, texture.Height, id);
-                        using (var data = img.Encode(SKEncodedImageFormat.Png, 80))
+                        img.Encode(output, SKEncodedImageFormat.Png, 100);
+                    }
+                }
+                break;
+            case RenderTexture rt:
+                {
+                    if (TryGetId(rt, out var frameBufferId, out var texInts))
+                    {
+                        var final = new SkiaSharp.SKBitmap(rt.Width, rt.Height * (rt.DepthBuffer != null ? 2 : 1));
+
+                        int s = rt.Width * rt.Height * 4;
+
+                        if ((rt.Flags & RenderTargetFlags.HDR) != RenderTargetFlags.None)
                         {
-                            data.SaveTo(output);
+                            var data = new float[s];
+                            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferId);
+                            GL.ReadBuffer(ReadBufferMode.ColorAttachment0);
+                            GL.ReadPixels(0, 0, texture.Width, texture.Height, PixelFormat.Rgba, PixelType.Float, data);
+                            var a = BuildImage(texture.Width, texture.Height, data);
+                            a.CopyTo(final);
+                            a.Dispose();
                         }
+                        else
+                        {
+                            var data = new byte[s];
+                            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferId);
+                            GL.ReadBuffer(ReadBufferMode.ColorAttachment0);
+                            GL.ReadPixels(0, 0, texture.Width, texture.Height, PixelFormat.Rgba, PixelType.Float, data);
+                            var a = BuildImage(texture.Width, texture.Height, data);
+                            a.CopyTo(final);
+                            a.Dispose();
+                        }
+
+                        int y = rt.Height;
+
+                        if (rt.DepthBuffer != null)
+                        {
+                            var data = new float[s / 4];
+                            var data2 = new float[s];
+                            GL.ReadPixels(0, 0, texture.Width, texture.Height, PixelFormat.DepthComponent, PixelType.Float, data);
+
+                            for (int i = 0; i < data2.Length; i += 4)
+                                data2[i] = data2[i + 1] = data2[i + 2] = data2[i + 3] = data[i / 4];
+
+                            var a = BuildImage(texture.Width, texture.Height, data2);
+                            a.CopyTo(final);
+                            a.Dispose();
+                        }
+
+                        final.Encode(output, SKEncodedImageFormat.Png, 100);
+                        final.Dispose();
                     }
                 }
                 break;
                 // TODO: Re-add support for RenderTexture. Removed during SixLabor->SkiaSharp conversion.
         }
 
-        static SKImage BuildImage<T>(int width, int height, T[] data)
+        static SKBitmap BuildImage<T>(int width, int height, T[] data)
         {
-            var info = new SKImageInfo
-            {
-                Width = width,
-                Height = height,
-                ColorType = SKColorType.RgbaF32,
-            };
+            var image = new SKBitmap(width, height);
+            var map = new SKPixmap(image.Info, image.GetAddress(0, 0));
+            var buffer = map.GetPixelSpan<byte>();
 
-            var image = SKImage.Create(info);
-            var pixmap = image.PeekPixels();
-            Span<Color> cols = pixmap.GetPixelSpan<Color>();
+            int bi = 0;
 
-            Func<int, Color> toColor = data switch
+            switch (data)
             {
-                byte[] b => i => new Color(b[i], b[i + 1], b[i + 2], b[i + 3]),
-                float[] f => i => new Color(f[i], f[i + 1], f[i + 2], f[i + 3]),
-                _ => throw new Exception("Attempt to save a texture with an invalid format: this error is so severe that you should stop programming forever."),
-            };
-
-            int i = 0;
-            for (int yy = 0; yy < image.Height; yy++)
-            {
-                int y = (image.Height - 1 - yy);
-                for (int x = 0; x < image.Width; x++)
-                {
-                    cols[i] = toColor(i);
-                    i += image.Info.BytesPerPixel;
-                }
+                case byte[] bytes:
+                    bytes.CopyTo(buffer);
+                    break;
+                case float[] floaties:
+                    for (int i = 0; i < floaties.Length; i++)
+                        buffer[i] = (byte)(float.Clamp(floaties[i], 0, 1) * byte.MaxValue);
+                    break;
             }
 
             return image;
         }
 
-        static SKImage TextureToImage(bool hdr, int w, int h, int id)
+        static SKBitmap TextureToImage(bool hdr, int w, int h, int id)
         {
             int s = w * h * 4;
 
@@ -434,5 +476,61 @@ public class OpenTKGraphics : IGraphics
     {
         var cache = GPUObjects.VertexBufferCache.Load<TVertex>();
         cache.Unload(vb);
+    }
+
+    public Color SampleTexture(IReadableTexture tex, int x, int y)
+    {
+        y = (tex.Height - 1) - y; // we gotta flip it
+
+        switch (tex)
+        {
+            case RenderTexture rt:
+                {
+                    if (!GPUObjects.RenderTextureCache.Has(rt))
+                        return Colors.Transparent;
+
+                    var d = GPUObjects.RenderTextureCache.Load(rt);
+                    var hdr = rt.HasFlag(RenderTargetFlags.HDR);
+
+                    if (hdr)
+                        return GetColor<float>(d.TextureIds[0]);
+                    else
+                        return GetColor<byte>(d.TextureIds[0]);
+                }
+            case IReadableTexture tx:
+                {
+                    if (!GPUObjects.TextureCache.Has(tx))
+                        return Colors.Transparent;
+
+                    var d = GPUObjects.TextureCache.Load(tx);
+                    var hdr = tx.HDR;
+
+                    if (hdr)
+                        return GetColor<float>(d.Handle);
+                    else
+                        return GetColor<byte>(d.Handle);
+                }
+        }
+
+        Color GetColor<T>(int handle) where T : struct
+        {
+            var pixel = new T[4]; //rgba
+            PixelType px = pixel is float[]? PixelType.Float : PixelType.UnsignedByte;
+
+            GL.BindTexture(TextureTarget.Texture2D, handle);
+            GL.GetTextureSubImage(
+                handle, 0,
+                xoffset: x, yoffset: y,
+                0, 1, 1, 1,
+                PixelFormat.Rgba, px, pixel.Length, pixel);
+
+            if (pixel is float[] f)
+                return new Color(f);
+            else if (pixel is byte[] b)
+                return new Color(b[0], b[1], b[2], b[3]);
+            return Colors.Transparent;
+        }
+
+        throw new Exception($"Texture type {tex.GetType()} not supported.");
     }
 }

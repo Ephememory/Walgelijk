@@ -93,11 +93,9 @@ public class Navigator
     public static event Action<int, ControlState>? OnStateChange;
 
     /// <summary>
-    /// Can we current navigate the UI with the TAB key?
-    /// <br></br>
-    /// Starts enabled as default behaviour.
+    /// Should the navigator respond to keyboard input? E.g. tab to switch focus
     /// </summary>
-    public bool TabNavigationEnabled = true;
+    public static bool KeyboardNavigation { get; set; } = true;
 
     internal int? ScrollbarOverride;
 
@@ -215,6 +213,9 @@ public class Navigator
 
     private void ProcessKeyboardNavigation(Input input)
     {
+        if (!KeyboardNavigation)
+            return;
+
         if (!FocusedControl.HasValue)
         {
             if (input.TabReleased)
@@ -232,16 +233,18 @@ public class Navigator
                 var minDist = float.MaxValue;
                 ControlInstance? nearest = null;
 
-                foreach (var item in Onion.Tree.Instances.Values)
+                foreach (var instance in Onion.Tree.Instances.Values)
                 {
-                    var node = Onion.Tree.Nodes[item.Identity];
-                    if (!node.AliveLastFrame)
-                        continue;
-                    var dist = Vector2.DistanceSquared(item.Rects.Rendered.GetCenter(), input.MousePosition);
-                    if (dist < minDist)
+                    if (Onion.Tree.Nodes.TryGetValue(instance.Identity, out var node))
                     {
-                        minDist = dist;
-                        nearest = item;
+                        if (!node.AliveLastFrame)
+                            continue;
+                        var dist = Vector2.DistanceSquared(instance.Rects.Rendered.GetCenter(), input.MousePosition);
+                        if (dist < minDist)
+                        {
+                            minDist = dist;
+                            nearest = instance;
+                        }
                     }
                 }
 
